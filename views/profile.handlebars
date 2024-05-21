@@ -1,0 +1,47 @@
+{{! Use the main layout }}
+{{!< main }}
+
+
+<link rel="stylesheet" href="/css/profileStyle.css">
+
+
+<div class="profile-container">
+
+
+    <div class="profile-avatar">
+        <div class="avatar-letter">{{user.username.[0]}}</div>
+    </div>
+
+
+    <div class="profile-info">
+        <!-- User info code -->
+        <p>Welcome, {{user.username}}!</p>
+        <p>Member since: {{user.memberSince}}</p>
+        <form action="/logout">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+</div>
+
+
+<section class="user-posts">
+    <h2>Your {{{postNeoType}}}s</h2>
+   
+    {{#if userPosts.length}}
+        <ul>
+            {{#each userPosts }}
+                <li>
+                    <h3>Title: {{this.title}}</h3>
+                    <p>Content: {{this.content}}</p>
+                    <hr>
+                    <p>Posted by: {{this.username}} on {{this.timestamp}}</p>
+                    <p>Likes: {{this.likes}}</p>
+                </li>
+            {{/each}}
+        </ul>
+    {{else}}
+        <p>You have not posted yet, {{user.username}}.</p>
+    {{/if}}
+
+
+</section>

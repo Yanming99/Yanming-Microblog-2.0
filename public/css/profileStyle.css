@@ -1,0 +1,108 @@
+/* General container styling */
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #4CAF50; /* Green */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: white;
+    margin-bottom: 20px;
+    text-transform: uppercase; /* Ensures the avatar letter is uppercase */
+}
+
+
+.profile-info {
+    text-align: center;
+}
+
+
+.profile-info p {
+    margin: 5px 0;
+}
+
+
+.profile-info form button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #f44336; /* Red */
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+
+.profile-info form button:hover {
+    background-color: #e53935;
+}
+
+
+.user-posts {
+    width: 80%;
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+
+.user-posts h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+
+.user-posts ul {
+    list-style: none;
+    padding: 0;
+}
+
+
+.user-posts li {
+    border: 2px solid #4CAF50; /* Green border */
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+
+.user-posts li:hover {
+    transform: scale(1.02);
+}
+
+
+.user-posts li h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+
+.user-posts li p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 1.2em; /* Increase the font size of the content */
+}
+
+
+.user-posts li hr {
+    border: 0;
+    border-top: 1px solid #ddd;
+    margin: 10px 0;
+}
+.avatar-letter{
+    text-transform: uppercase;
+}
+
