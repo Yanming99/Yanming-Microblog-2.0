@@ -1,38 +1,21 @@
-{{! Use the main layout }}
-{{!< main }}
-
 <link rel="stylesheet" href="/css/loginRegisterStyle.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <section class="login-register">
     <section class="login-area">
         <h2>Login</h2>
-        <!-- errors will appear here -->
-        {{#if loginError}}
-            <p style="color: red;">{{loginError}}</p>
-        {{/if}}
-        <form action="/login" method="POST">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <button type="submit">Login</button>
-        </form>
-    </section>
-
-    <!-- say --OR-- ... with style -->
-
-    <section class="register-area">
-        <h2>Register</h2>
-        <!-- errors will appear here -->
-        {{#if regError}}
-            <p style="color: red;">{{regError}}</p>
-        {{/if}}
-        <form action="/register" method="POST">
-            <label for="newUsername">New Username:</label>
-            <input type="text" id="newUsername" name="username" required>
-            <label for="newPassword">New Password:</label>
-            <input type="password" id="newPassword" name="password" required>
-            <button type="submit">Register</button>
-        </form>
+        <a href="/auth/google" class="google-button">Login with Google</a>
     </section>
 </section>
+
+<style>
+    .google-button {
+        display: inline-block;
+        background-color: #4285F4;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+</style>

@@ -1,3 +1,13 @@
+/* public/css/homeStyle.css */
+.sorting-options {
+    margin-bottom: 20px;
+}
+
+.sorting-options select {
+    padding: 5px;
+    font-size: 16px;
+}
+
 /* Layout styles */
 .content-container {
     display: flex;
@@ -6,7 +16,7 @@
 }
 
 .post-form {
-    width: 45%; /* Ensure this is a fixed width */
+    width: 45%;
 }
 
 /* Styles for left part (Create a new post) */
@@ -30,7 +40,7 @@
 }
 
 .post-form textarea {
-    height: 150px; /* Adjust as needed */
+    height: 150px;
     resize: none;
     margin-bottom: 10px;
 }
@@ -64,7 +74,7 @@
 
 /* Styles for right part (Recent Posts) */
 .posts-list {
-    flex-grow: 1; /* This will make the posts list fill the remaining space */
+    flex-grow: 1;
     padding: 20px;
     background-color: #f9f9f9;
     border-radius: 10px;
@@ -74,12 +84,11 @@
     margin-top: 10px;
 }
 
-/* Adding border to each post */
 .post-item {
-    border: 1px solid #ccc; /* Adjust as needed */
+    border: 1px solid #ccc;
     padding: 10px;
     margin-bottom: 10px;
-    border-radius: 5px; /* Optional, for rounded corners */
+    border-radius: 5px;
 }
 
 .input-box {
@@ -92,23 +101,23 @@
 }
 
 .emoji-search-results {
-    width: 100%; 
-    max-height: 200px; 
-    overflow-y: auto; 
-    margin-top: 10px; 
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 10px;
 }
 
 .emoji-search-results .emoji-item {
     display: flex;
     align-items: center;
-    margin-bottom: 5px; 
+    margin-bottom: 5px;
     cursor: pointer;
 }
 
 .emoji-search-results .emoji-item img {
-    width: 24px; 
+    width: 24px;
     height: 24px;
-    margin-right: 10px; 
+    margin-right: 10px;
 }
 
 .emoji-search-results .emoji-item .emoji-text {

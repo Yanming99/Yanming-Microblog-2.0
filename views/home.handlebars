@@ -1,7 +1,7 @@
+<!-- home.handlebars -->
 {{! Use the main layout }}
 {{!< main }}
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link rel="stylesheet" href="/css/homeStyle.css">
 
 {{! New Post Submission Form and Recent Posts }}
@@ -32,16 +32,25 @@
         <!-- Right Side: Recent Posts -->
         <section class="posts-list">
             <h2>Recent Posts</h2>
-            {{#if posts.length}}
-                <ul>
-                    {{#each posts }}
-                        <!-- Render individual post using the post.handlebars partial -->
-                        {{> post this}}
-                    {{/each}}
-                </ul>
-            {{else}}
-                <p>No posts yet.</p>
-            {{/if}}
+            <div class="sorting-options">
+                <label for="sortPosts">Sort by:</label>
+                <select id="sortPosts">
+                    <option value="recency">Recency</option>
+                    <option value="likes">Number of Likes</option>
+                </select>
+            </div>
+            <div id="posts-container">
+                {{#if posts.length}}
+                    <ul>
+                        {{#each posts}}
+                            <!-- Render individual post using the post.handlebars partial -->
+                            {{> post this}}
+                        {{/each}}
+                    </ul>
+                {{else}}
+                    <p>No posts yet.</p>
+                {{/if}}
+            </div>
         </section>
     {{else}}
         <!-- Show something if not logged in -->
@@ -49,7 +58,8 @@
     {{/if}}
 </section>
 
-{{! JavaScript for Emoji Integration }}
+{{! JavaScript for Emoji Integration and Sorting }}
+<script src="/js/sorting.js"></script>
 <script>
     let allEmojis = [];
 
@@ -57,7 +67,7 @@
         const container = document.getElementById('emoji-container');
         container.style.display = container.style.display === 'none' ? 'block' : 'none';
 
-        if (container.style.display === 'block' && allEmojis.length === 0){
+        if (container.style.display === 'block' && allEmojis.length === 0) {
             fetchEmojis();
         }
     }
