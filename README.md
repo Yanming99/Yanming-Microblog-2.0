@@ -1,3 +1,4 @@
+CHECK "server.js" FIRST!!!!
 1. Prerequisites
 Before running the application, ensure you have the following installed:
 1.	Node.js and npm: Ensure Node.js and npm are installed on your system. You can check this by running:
