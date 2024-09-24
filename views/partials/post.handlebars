@@ -8,6 +8,13 @@
         <div class="post-content preserve-newlines">
             <h3>{{ title }}</h3>
             <p>{{ content }}</p>
+            {{#if filePath}}
+            <hr>
+            <div>
+                <h3>Uploaded File:</h3>
+                <a href="{{filePath}}" target="_blank">View File</a>
+            </div>
+            {{/if}}
             <hr>
             <div class="post-status-bar">
                 <!-- Render like button -->
@@ -15,8 +22,6 @@
                     <i class="far fa-heart"></i> Like
                 </button>
                 <span class="like-count">{{ likeCount }}</span>
-
-
                 <!-- Render delete button -->
                 <button class="delete-button" onclick="handleDeleteClick(event)" data-id="{{ id }}">
                     <i class="fas fa-trash-alt"></i> Delete
@@ -26,11 +31,9 @@
     </div>
 </div>
 
-
 <script>
     function handleLikeClick(event) {
         const postId = event.target.closest('button').getAttribute('data-id');
-
 
         // Make a POST request to the server to update the likes count for this post
         fetch(`/like/${postId}`, {
@@ -56,10 +59,8 @@
         });
     }
 
-
     function handleDeleteClick(event) {
         const postId = event.target.closest('button').getAttribute('data-id');
-
 
         // Make a POST request to the server to delete the post
         fetch(`/delete/${postId}`, {

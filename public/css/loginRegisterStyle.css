@@ -1,72 +1,53 @@
 /* Styles for the login-register page */
 .login-register {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
     height: 100vh;
-}
-
-.login-area, .register-area {
-    width: 45%; /* Adjust the width as needed */
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-image: url('https://blog.hubspot.com/hs-fs/hubfs/The%20Secret%20History%20of%20the%20Google%20Logo-4.jpeg?width=528&name=The%20Secret%20History%20of%20the%20Google%20Logo-4.jpeg');
+    background-color: #f0f0f0; /* Light grey background for the whole page */
 }
 
 .login-area {
-    background-color: #f9f9f9;
-}
-
-.register-area {
     background-color: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }
 
 h2 {
     margin-top: 0;
+    color: #333;
 }
 
-form {
-    margin-top: 20px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    transition: background-color 0.3s; /* Smooth transition for background color */
-}
-
-/* Change input background color when focused */
-input[type="text"]:focus,
-input[type="password"]:focus {
-    background-color: yellow;
-}
-
-button[type="submit"] {
-    background-color: #007bff;
-    color: #fff;
+.google-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #4285F4;
+    color: white;
     padding: 10px 20px;
-    border: none;
+    text-decoration: none;
     border-radius: 4px;
-    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
-button[type="submit"]:hover {
-    background-color: #0056b3;
+.google-button:hover {
+    background-color: #357ae8;
+}
+
+.google-logo {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
 }
 
 /* Responsive layout */
 @media (max-width: 768px) {
-    .login-area, .register-area {
-        width: 90%; /* Adjust the width for smaller screens */
+    .login-area {
+        width: 90%;
+        padding: 20px;
     }
 }

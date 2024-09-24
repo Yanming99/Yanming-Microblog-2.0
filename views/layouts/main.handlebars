@@ -9,8 +9,7 @@
    
     <title>{{{appName}}}</title>
 
-
-<link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="wrapper">
     <header>
@@ -26,8 +25,6 @@
                     <li><a href="/profile">Profile</a></li>
                     <li><a href="/logout">Logout <span>{{user.username}}</span> </a></li>
                     <div class="user-info">
-
-
                         <!-- conditional rendering based on variables -->
                         <img src="{{#if user.avatar_url}}
                                         {{user.avatar_url}}
@@ -37,6 +34,13 @@
                                     alt="User Avatar"
                                     class="header-avatar">
                     </div>
+                    <!-- 添加文件上传按钮 -->
+                    <li>
+                        <form id="upload-form" enctype="multipart/form-data">
+                            <input type="file" id="file" name="file" style="display: none;" onchange="handleFileUpload(event)">
+                            <button type="button" onclick="document.getElementById('file').click();">Upload File</button>
+                        </form>
+                    </li>
                 {{else}}
                     <li><a href="/">Home</a></li>
                     <li><a href="/login">Login/Register</a></li>
@@ -45,12 +49,36 @@
         </nav>
     </header>
 
-
     {{{body}}}
-
 
     <footer>
         <p>© {{{copyrightYear}}} {{{appName}}}. All rights reserved.</p>
     </footer>
+
+    <script>
+        async function handleFileUpload(event) {
+            const fileInput = event.target;
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const resultText = await response.text();
+                    const newWindow = window.open();
+                    newWindow.document.write(resultText);
+                } else {
+                    alert('File upload failed.');
+                }
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                alert('Error uploading file.');
+            }
+        }
+    </script>
 </body>
 </html>

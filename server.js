@@ -7,7 +7,8 @@ const sqlite = require('sqlite');
 const sqlite3 = require('sqlite3');
 const path = require('path');
 const dotenv = require('dotenv');
-
+const multer = require('multer');
+const fetch = require('node-fetch');
 
 dotenv.config();
 
@@ -27,7 +28,8 @@ let db;
             username TEXT NOT NULL UNIQUE,
             hashedGoogleId TEXT NOT NULL UNIQUE,
             avatar_url TEXT,
-            memberSince DATETIME NOT NULL
+            memberSince DATETIME NOT NULL,
+            background_url TEXT
         );
 
         CREATE TABLE IF NOT EXISTS posts (
@@ -36,10 +38,51 @@ let db;
             content TEXT NOT NULL,
             username TEXT NOT NULL,
             timestamp DATETIME NOT NULL,
-            likes INTEGER NOT NULL
+            likes INTEGER NOT NULL,
+            filePath TEXT
         );
     `);
+
+    // Check and add background_url column if it does not exist
+    const userTableColumns = await db.all("PRAGMA table_info(users)");
+    const userColumns = userTableColumns.map(row => row.name);
+    if (!userColumns.includes("background_url")) {
+        await db.run("ALTER TABLE users ADD COLUMN background_url TEXT");
+    }
+
+    // Check and add filePath column to posts table if it does not exist
+    const postTableColumns = await db.all("PRAGMA table_info(posts)");
+    const postColumns = postTableColumns.map(row => row.name);
+    if (!postColumns.includes("filePath")) {
+        await db.run("ALTER TABLE posts ADD COLUMN filePath TEXT");
+    }
 })();
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname))
+    }
+});
+const upload = multer({ storage: storage });
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.post('/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+    const filePath = `/uploads/${req.file.filename}`;
+    console.log('File uploaded to:', filePath);
+    res.render('uploadSuccess', { filePath });
+});
+
+async function addPost(title, content, username, filePath) {
+    const timestamp = new Date().toISOString();
+    await db.run('INSERT INTO posts (title, content, username, timestamp, likes, filePath) VALUES (?, ?, ?, ?, ?, ?)', title, content, username, timestamp, 0, filePath);
+}
 
 app.engine('handlebars', expressHandlebars.engine({
     layoutsDir: path.join(__dirname, 'views/layouts'),
@@ -81,9 +124,8 @@ passport.use(new GoogleStrategy({
     try {
         let user = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', profile.id);
         if (!user) {
-            // Insert the new user into the database
             const memberSince = new Date().toISOString();
-            await db.run('INSERT INTO users (hashedGoogleId, memberSince) VALUES (?, ?)', profile.id, memberSince);
+            await db.run('INSERT INTO users (username, hashedGoogleId, memberSince) VALUES (?, ?, ?)', profile.id, profile.id, memberSince);
             user = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', profile.id);
         }
         return done(null, user);
@@ -93,12 +135,12 @@ passport.use(new GoogleStrategy({
 }));
 
 passport.serializeUser((user, done) => {
-    done(null, user.id || user.hashedGoogleId);
+    done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
     try {
-        const user = await db.get('SELECT * FROM users WHERE id = ? OR hashedGoogleId = ?', id, id);
+        const user = await db.get('SELECT * FROM users WHERE id = ?', id);
         if (!user) {
             return done(new Error('User not found'));
         }
@@ -107,6 +149,16 @@ passport.deserializeUser(async (id, done) => {
         done(err);
     }
 });
+
+function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+        console.log('User is authenticated');
+        return next();
+    } else {
+        console.log('User is not authenticated');
+        res.status(401).send('Unauthorized');
+    }
+}
 
 app.use((req, res, next) => {
     res.locals.appName = 'Connected With Us';
@@ -136,16 +188,19 @@ async function getPosts() {
     return db.all('SELECT * FROM posts ORDER BY timestamp DESC');
 }
 
-async function addPost(title, content, username) {
-    const timestamp = new Date().toISOString();
-    await db.run('INSERT INTO posts (title, content, username, timestamp, likes) VALUES (?, ?, ?, ?, ?)', title, content, username, timestamp, 0);
-}
-
 async function updatePostLikes(postId) {
     await db.run('UPDATE posts SET likes = likes + 1 WHERE id = ?', postId);
 }
 
-// Routes
+async function getCommentsByPostId(postId) {
+    return db.all('SELECT * FROM comments WHERE postId = ? ORDER BY timestamp DESC', postId);
+}
+
+async function addComment(postId, username, content) {
+    const timestamp = new Date().toISOString();
+    await db.run('INSERT INTO comments (postId, username, content, timestamp) VALUES (?, ?, ?, ?)', postId, username, content, timestamp);
+}
+
 app.get('/', async (req, res) => {
     const posts = await getPosts();
     const user = req.user ? await findUserById(req.user.id) : {};
@@ -177,7 +232,8 @@ app.get('/post/:id', async (req, res) => {
         res.redirect('/error');
         return;
     }
-    res.render('postDetail', { post });
+    const comments = await getCommentsByPostId(postId);
+    res.render('postDetail', { post, comments, loggedIn: req.isAuthenticated() });
 });
 
 app.post('/posts', async (req, res) => {
@@ -197,7 +253,6 @@ app.post('/like/:id', async (req, res) => {
     res.redirect('/');
 });
 
-
 app.get('/profile', async (req, res) => {
     if (!req.isAuthenticated()) {
         return res.redirect('/login');
@@ -212,6 +267,10 @@ app.get('/profile', async (req, res) => {
     res.render('profile', { user, userPosts });
 });
 
+
+
+
+
 app.get('/avatar/:username', async (req, res) => {
     const username = req.params.username;
     const user = await findUserByUsername(username);
@@ -219,11 +278,74 @@ app.get('/avatar/:username', async (req, res) => {
         res.status(404).send('User not found');
         return;
     }
-    const firstLetter = user.username.charAt(0) || 'U';
-    const avatarBuffer = generateAvatar(firstLetter);
-    res.set('Content-Type', 'image/png');
-    res.send(avatarBuffer);
+
+
+    if (user.avatar_url) {
+        try {
+            const response = await fetch(user.avatar_url);
+            if (!response.ok) {
+                throw new Error('Failed to fetch avatar');
+            }
+            const buffer = await response.buffer();
+            res.set('Content-Type', 'image/png');
+            res.send(buffer);
+        } catch (error) {
+            console.error('Error fetching avatar:', error);
+            res.status(500).send('Error fetching avatar');
+        }
+    } else {
+        const firstLetter = user.username.charAt(0).toUpperCase();
+        const avatarBuffer = generateAvatar(firstLetter);
+        res.set('Content-Type', 'image/png');
+        res.send(avatarBuffer);
+    }
 });
+
+
+async function fetchAvatarBuffer(url) {
+    const response = await fetch(url);
+    const buffer = await response.buffer();
+    return buffer;
+}
+
+// Update
+app.get('/edit-profile', async (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.redirect('/login');
+    }
+
+
+    const user = await findUserById(req.user.id);
+    if (!user) {
+        return res.redirect('/error');
+    }
+
+
+    res.render('editProfile', { user });
+});
+
+
+app.post('/edit-profile', async (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.redirect('/login');
+    }
+
+
+    const { username, avatar_url } = req.body;
+    await db.run('UPDATE users SET username = ?, avatar_url = ? WHERE id = ?', username, avatar_url, req.user.id);
+
+
+    res.redirect('/profile');
+});
+
+
+
+
+
+
+
+
+
 
 // Google OAuth login route
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile'] }));
@@ -231,7 +353,7 @@ app.get('/auth/google', passport.authenticate('google', { scope: ['profile'] }))
 // Google OAuth callback route
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), async (req, res) => {
     const user = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', req.user.hashedGoogleId);
-    if (!user) {
+    if (!user.username || user.username === req.user.hashedGoogleId) {
         res.redirect('/registerUsername');
     } else {
         req.session.userId = user.id;
@@ -242,7 +364,7 @@ app.get('/auth/google/callback', passport.authenticate('google', { failureRedire
 
 // Username registration route (GET)
 app.get('/registerUsername', (req, res) => {
-    res.render('registerUsername');
+    res.render('registerUsername', { error: req.query.error });
 });
 
 // Username registration route (POST)
@@ -253,7 +375,7 @@ app.post('/registerUsername', async (req, res) => {
         res.redirect('/registerUsername?error=Username%20already%20taken');
         return;
     }
-    await addUser(username, req.user.hashedGoogleId);
+    await db.run('UPDATE users SET username = ? WHERE hashedGoogleId = ?', username, req.user.hashedGoogleId);
     req.session.userId = req.user.id;
     req.session.loggedIn = true;
     res.redirect('/');
@@ -277,7 +399,29 @@ app.get('/logoutCallback', (req, res) => {
     res.redirect('/login');
 });
 
-const fetch = require('node-fetch'); // Make sure to install node-fetch
+app.post('/comment', async (req, res) => {
+    const { postId, content } = req.body;
+    const user = await findUserById(req.user.id);
+    if (!user) {
+        res.redirect('/error');
+        return;
+    }
+    await addComment(postId, user.username, content);
+    res.redirect(`/post/${postId}`);
+});
+
+// 设置背景图片的路由
+app.post('/setBackground', ensureAuthenticated, async (req, res) => {
+    const { filePath } = req.body;
+    try {
+        console.log('Updating background for user:', req.user.id, 'with filePath:', filePath); // 添加日志
+        await db.run('UPDATE users SET background_url = ? WHERE id = ?', filePath, req.user.id);
+        res.status(200).send('Profile background updated successfully.');
+    } catch (error) {
+        console.error('Error updating profile background:', error);
+        res.status(500).send('Failed to update profile background.');
+    }
+});
 
 app.get('/fetch-emojis', async (req, res) => {
    try {
@@ -290,6 +434,10 @@ app.get('/fetch-emojis', async (req, res) => {
        res.status(500).send('Error fetching emojis');
    }
 });
+
+
+
+
 
 
 
